@@ -4,6 +4,18 @@ A complete, production-quality consumer e-commerce web application engineered wi
 
 ---
 
+## 🌐 Live Demo
+
+Explore the live production deployment hosted on Firebase:
+
+🔗 **[https://ecom-portal-97958.web.app](https://ecom-portal-97958.web.app)**
+
+- **Storefront & Catalog**: 40+ curated products across 6 categories (Electronics, Fashion, Home & Kitchen, Books, Beauty, Sports).
+- **Checkout Simulation**: Full Indian e-commerce flow with INR (₹) pricing, 18% GST breakdown, UPI QR code & card settlement simulation.
+- **Persistent State**: Cart, Wishlist, Address Book, and Firestore-backed Order History.
+
+---
+
 ## 🌟 Key Features
 
 ### 1. 🎨 Premium Dark Navy Design System
@@ -15,8 +27,8 @@ A complete, production-quality consumer e-commerce web application engineered wi
 ### 2. 🔐 Authentication & Role-Based Access Control
 - **Firebase Auth**: Secure Email & Password signup and login.
 - **User Profiling**: Stores user documents in Firestore `users` collection defaulting to the `customer` role.
-- **Admin Access**: Role `admin` securely unlocks `/admin` (Merchant Command Center).
-- **Instant Demo Switcher**: Fast-fill demo credentials for Customer and Admin, plus an in-app developer toggle in the account dropdown menu for instant role switching during testing.
+- **Admin Access**: Role `admin` securely unlocks `/admin` (Merchant Command Center) via Firestore security rules (`users/{uid}.role == 'admin'`).
+- **Instant Demo**: Fast-fill demo credentials for immediate exploration with verified role boundaries.
 
 ### 3. 📦 Multi-Category Product Catalog
 - **6 Core Lifestyle Verticals**:
