@@ -236,7 +236,7 @@ export const AdminPage = () => {
   const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
   const totalOrdersCount = orders.length;
   const uniqueUsersCount = new Set(orders.map((o) => o.customerEmail || o.userId)).size || 1;
-  const lowStockProducts = products.filter((p) => p.stock <= 15);
+  const lowStockProducts = products.filter((p) => p.stock <= 10);
 
   // Filtered products list for product table
   const filteredProducts = products.filter((p) => {
@@ -474,7 +474,7 @@ export const AdminPage = () => {
             <div className="bg-[#111A2C] border border-amber-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
               <div className="flex items-center gap-2 text-amber-400 text-sm font-bold">
                 <AlertCircle className="w-5 h-5" />
-                <span>Critical Low Stock Threshold Alerts ({lowStockProducts.length} Items &lt; 15 units)</span>
+                <span>Critical Low Stock Threshold Alerts ({lowStockProducts.length} Items ≤ 10 units)</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 {lowStockProducts.slice(0, 4).map((p) => (

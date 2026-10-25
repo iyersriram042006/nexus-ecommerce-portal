@@ -57,7 +57,7 @@ export const ProductCard = ({ product }) => {
 
         {/* Stock pill & discount badge */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-          {product.stock <= 5 ? (
+          {product.stock <= 10 ? (
             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-500/90 text-white shadow">
               Only {product.stock} Left
             </span>

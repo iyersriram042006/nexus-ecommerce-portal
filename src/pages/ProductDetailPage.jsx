@@ -165,9 +165,15 @@ export const ProductDetailPage = () => {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute top-3 left-3 flex gap-2">
-              <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-500/90 text-slate-950 shadow">
-                In Stock ({product.stock} Units)
-              </span>
+              {product.stock <= 10 ? (
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-rose-500/90 text-white shadow">
+                  Only {product.stock} Left
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-500/90 text-slate-950 shadow">
+                  In Stock ({product.stock} Units)
+                </span>
+              )}
               <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-500/90 text-white shadow">
                 Verified Authentic
               </span>
@@ -454,7 +460,9 @@ export const ProductDetailPage = () => {
             <div className="space-y-2">
               <div className="flex justify-between py-2 border-b border-[#223049]/60">
                 <span className="text-slate-400">Inventory Status</span>
-                <span className="text-emerald-400 font-semibold">{product.stock} units available</span>
+                <span className={product.stock <= 10 ? "text-rose-400 font-semibold" : "text-emerald-400 font-semibold"}>
+                  {product.stock <= 10 ? `Low Stock (${product.stock} units left)` : `${product.stock} units available`}
+                </span>
               </div>
               <div className="flex justify-between py-2 border-b border-[#223049]/60">
                 <span className="text-slate-400">Warranty SLA</span>

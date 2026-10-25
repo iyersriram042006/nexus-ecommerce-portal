@@ -25,11 +25,7 @@ export const fetchProducts = async () => {
     if (!snapshot.empty) {
       const prods = [];
       snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        if (docSnap.id === 'prod-sp-01' && (data.image?.includes('1508685096489') || data.image?.includes('1579586337278'))) {
-          data.image = '/images/garmin-fenix-7.jpg';
-        }
-        prods.push({ id: docSnap.id, ...data });
+        prods.push({ id: docSnap.id, ...docSnap.data() });
       });
       return prods;
     }
@@ -48,11 +44,7 @@ export const fetchProductById = async (productId) => {
     const docRef = doc(db, PRODUCTS_COLLECTION, productId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (docSnap.id === 'prod-sp-01' && (data.image?.includes('1508685096489') || data.image?.includes('1579586337278'))) {
-        data.image = '/images/garmin-fenix-7.jpg';
-      }
-      return { id: docSnap.id, ...data };
+      return { id: docSnap.id, ...docSnap.data() };
     }
   } catch (err) {
     console.warn(`Error fetching product ${productId} from Firestore:`, err);
