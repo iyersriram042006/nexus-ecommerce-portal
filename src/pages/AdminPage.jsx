@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Database,
   Plus,
@@ -9,6 +9,7 @@ import {
   Loader2,
   X,
   ChevronDown,
+  BarChart3,
 } from 'lucide-react';
 import { BRAND } from '../data/brand';
 import { CATEGORIES } from '../data/seedProducts';
@@ -238,6 +239,47 @@ export const AdminPage = () => {
   const uniqueUsersCount = new Set(orders.map((o) => o.customerEmail || o.userId)).size || 1;
   const lowStockProducts = products.filter((p) => p.stock <= 10);
 
+  const [today] = useState(() => new Date());
+
+  // Group real revenue from orders collection for the last 7 days
+  const last7DaysData = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (6 - i));
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const date = d.getDate();
+
+      const dayOrders = orders.filter((o) => {
+        if (!o.createdAt) return false;
+        const od = o.createdAt?.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+        return od.getFullYear() === year && od.getMonth() === month && od.getDate() === date;
+      });
+
+      const dayRevenue = dayOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+      const dayName = d.toLocaleDateString('en-IN', { weekday: 'short' });
+      const dateLabel = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+      return {
+        key: `${year}-${month}-${date}`,
+        dayName,
+        dateLabel,
+        fullLabel: `${dayName}, ${dateLabel}`,
+        revenue: dayRevenue,
+        orderCount: dayOrders.length,
+      };
+    });
+  }, [orders, today]);
+
+  const maxDayRevenue = Math.max(...last7DaysData.map((d) => d.revenue), 0);
+  const chartYMax = maxDayRevenue > 0 ? Math.ceil(maxDayRevenue * 1.15) : 10000;
+  const yAxisTicks = [
+    chartYMax,
+    Math.round(chartYMax * 0.66),
+    Math.round(chartYMax * 0.33),
+    0,
+  ];
+
   // Filtered products list for product table
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -412,33 +454,110 @@ export const AdminPage = () => {
               <div className="flex items-center justify-between pb-3 border-b border-[#223049]">
                 <div>
                   <h3 className="font-bold text-white text-sm">Revenue & Fulfillment Trajectory</h3>
-                  <p className="text-[11px] text-slate-400">Monthly progression across verified transactions</p>
+                  <p className="text-[11px] text-slate-400">
+                    {orders.length > 0
+                      ? 'Daily revenue breakdown from verified orders over the last 7 days'
+                      : 'Daily revenue progression across customer orders'}
+                  </p>
                 </div>
-                <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">
-                  Live Settlement Rate
+                <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  {orders.length > 0 ? `${orders.length} Verified Orders` : '0 Orders'}
                 </span>
               </div>
 
-              {/* Simulated visual bar chart */}
-              <div className="h-44 flex items-end gap-3 pt-6 px-2">
-                {[
-                  { month: 'Jan', val: 40 },
-                  { month: 'Feb', val: 65 },
-                  { month: 'Mar', val: 50 },
-                  { month: 'Apr', val: 80 },
-                  { month: 'May', val: 75 },
-                  { month: 'Jun', val: 95 },
-                  { month: 'Jul', val: 90 },
-                ].map((bar) => (
-                  <div key={bar.month} className="flex-1 flex flex-col items-center gap-2">
-                    <div
-                      style={{ height: `${bar.val}%` }}
-                      className="w-full bg-gradient-to-t from-blue-700 to-blue-400 rounded-t-md transition-all hover:brightness-125"
-                    ></div>
-                    <span className="text-[10px] text-slate-400 font-mono">{bar.month}</span>
+              {orders.length === 0 ? (
+                <div className="h-52 flex flex-col items-center justify-center text-center p-6 bg-[#0B1220]/60 rounded-xl border border-dashed border-[#223049]">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mb-3 border border-blue-500/20">
+                    <BarChart3 className="w-6 h-6" />
                   </div>
-                ))}
-              </div>
+                  <h4 className="text-sm font-bold text-white mb-1">No Orders Recorded Yet</h4>
+                  <p className="text-xs text-slate-400 max-w-sm">
+                    No customer orders have been placed yet. As soon as orders are logged, the 7-day revenue trajectory bar chart will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 pt-1">
+                  {/* Axis Title */}
+                  <div className="flex justify-between items-center text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <span>Revenue (₹)</span>
+                    <span className="text-slate-500">Last 7 Days</span>
+                  </div>
+
+                  {/* Chart Body with Y-Axis and Bars */}
+                  <div className="flex gap-3 h-44">
+                    {/* Y-Axis Labels */}
+                    <div className="flex flex-col justify-between items-end text-[10px] font-mono text-slate-400 pr-1 select-none pb-7">
+                      {yAxisTicks.map((tick, idx) => (
+                        <span key={idx}>{formatINR(tick)}</span>
+                      ))}
+                    </div>
+
+                    {/* Chart Plot Area with Grid lines and Bars */}
+                    <div className="flex-1 flex flex-col">
+                      <div className="relative flex-1 flex items-end gap-2 sm:gap-4 pb-2 border-b border-[#223049]">
+                        {/* Horizontal Grid lines */}
+                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                          <div className="border-b border-slate-500 w-full"></div>
+                          <div className="border-b border-slate-500 w-full"></div>
+                          <div className="border-b border-slate-500 w-full"></div>
+                          <div></div>
+                        </div>
+
+                        {/* Bars */}
+                        {last7DaysData.map((bar) => {
+                          const heightPercent = chartYMax > 0 ? (bar.revenue / chartYMax) * 100 : 0;
+                          return (
+                            <div key={bar.key} className="flex-1 h-full flex flex-col justify-end items-center relative group">
+                              {/* Hover Tooltip */}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center bg-[#0B1220] border border-[#223049] text-white text-[10px] py-1 px-2.5 rounded-lg shadow-2xl whitespace-nowrap z-20 pointer-events-none">
+                                <span className="font-bold text-blue-400">{formatINR(bar.revenue)}</span>
+                                <span className="text-slate-400">{bar.fullLabel}</span>
+                                <span className="text-slate-500 text-[9px]">{bar.orderCount} {bar.orderCount === 1 ? 'order' : 'orders'}</span>
+                              </div>
+
+                              {/* Value label above bar if revenue > 0 */}
+                              {bar.revenue > 0 && (
+                                <span className="text-[9px] font-mono text-blue-300 font-semibold mb-1 truncate max-w-full">
+                                  {formatINR(bar.revenue)}
+                                </span>
+                              )}
+
+                              {/* The Bar */}
+                              <div
+                                style={{ height: `${bar.revenue > 0 ? Math.max(8, heightPercent) : 3}%` }}
+                                className={`w-full rounded-t-md transition-all duration-300 ${
+                                  bar.revenue > 0
+                                    ? 'bg-gradient-to-t from-blue-700 via-blue-500 to-blue-400 group-hover:from-blue-600 group-hover:to-blue-300 shadow-lg shadow-blue-500/20'
+                                    : 'bg-[#1C283F] group-hover:bg-[#253552]'
+                                }`}
+                              ></div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* X-Axis Labels */}
+                      <div className="flex gap-2 sm:gap-4 pt-1.5">
+                        {last7DaysData.map((bar) => (
+                          <div key={bar.key} className="flex-1 text-center">
+                            <span className="block text-[10px] font-semibold text-slate-300">
+                              {bar.dayName}
+                            </span>
+                            <span className="block text-[9px] font-mono text-slate-500">
+                              {bar.dateLabel}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* X-Axis Title */}
+                      <div className="text-center text-[10px] text-slate-500 uppercase tracking-wider font-semibold pt-1">
+                        Timeline (Day)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Category Split */}
@@ -664,6 +783,9 @@ export const AdminPage = () => {
 
                       <td className="py-3.5 px-4 font-bold text-white whitespace-nowrap">
                         {formatINR(o.total)}
+                        <span className="text-[10px] text-slate-400 block font-normal">
+                          Includes GST of Rs {Number(o.gst || Math.round(((o.subtotal - (o.discount || 0)) * 18) / 118)).toLocaleString('en-IN')}
+                        </span>
                       </td>
 
                       <td className="py-3.5 px-4 text-slate-300 whitespace-nowrap">

@@ -23,7 +23,6 @@ export const CheckoutPage = () => {
     cartSubtotal,
     discountAmount,
     appliedPromo,
-    gstAmount,
     shippingFee: defaultShippingFee,
     clearCart,
   } = useCart();
@@ -60,7 +59,11 @@ export const CheckoutPage = () => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const selectedShippingFee = deliverySpeed === 'expedited' ? 149 : defaultShippingFee;
-  const grandTotal = cartSubtotal - discountAmount + gstAmount + selectedShippingFee;
+  const netAmount = Math.max(0, cartSubtotal - discountAmount);
+  // Product prices are GST-inclusive. Included GST = amount * 18 / 118
+  const calculatedGst = Math.round((netAmount * 18) / 118);
+  // total = sum of the inclusive item prices - discount + shipping (stop adding GST on top)
+  const grandTotal = netAmount + selectedShippingFee;
 
   const validateAddress = () => {
     const errors = {};
@@ -136,7 +139,7 @@ export const CheckoutPage = () => {
         subtotal: cartSubtotal,
         discount: discountAmount,
         promoCode: appliedPromo?.code || null,
-        gst: gstAmount,
+        gst: calculatedGst,
         shippingCost: selectedShippingFee,
         total: grandTotal,
       };
@@ -600,9 +603,8 @@ export const CheckoutPage = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-slate-400">Estimated Statutory GST (18%)</span>
-                <span className="font-semibold text-slate-200">{formatINR(gstAmount)}</span>
+              <div className="pt-1 text-[11px] text-slate-400">
+                Includes GST of Rs {calculatedGst.toLocaleString('en-IN')}
               </div>
             </div>
 
@@ -612,7 +614,7 @@ export const CheckoutPage = () => {
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                   Total Payable Amount
                 </span>
-                <span className="text-[10px] text-slate-500">Includes all GST & charges</span>
+                <span className="text-[10px] text-slate-500">Includes GST of Rs {calculatedGst.toLocaleString('en-IN')}</span>
               </div>
               <span className="text-2xl font-black text-white tracking-tight">
                 {formatINR(grandTotal)}

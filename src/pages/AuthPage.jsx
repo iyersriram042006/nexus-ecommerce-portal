@@ -124,13 +124,6 @@ export const AuthPage = () => {
     }
   };
 
-  const handleDemoFill = () => {
-    setEmail('customer@nexus.store');
-    setPassword('Customer@123456');
-    setDisplayName('Aarav Patel');
-    setError('');
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
       <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -400,19 +393,7 @@ export const AuthPage = () => {
               </button>
             </form>
 
-            {/* Quick Demo Credentials Autofill */}
-            <div className="mt-6 pt-5 border-t border-[#223049]">
-              <p className="text-[11px] text-slate-400 font-medium text-center mb-2.5 uppercase tracking-wider">
-                Instant Demo Quick-Fill
-              </p>
-              <button
-                type="button"
-                onClick={handleDemoFill}
-                className="w-full py-2 px-2.5 rounded-lg bg-[#0B1220] border border-[#223049] hover:border-blue-500 text-[11px] text-slate-300 transition-colors font-medium text-center"
-              >
-                Fill Demo Customer
-              </button>
-            </div>
+
 
             <p className="text-[10px] text-slate-500 text-center mt-5 leading-normal">
               By proceeding, you agree to {BRAND.name}&apos;s Terms of Service and Privacy Policy. All accounts are secured with Firebase Auth & 256-bit SSL.

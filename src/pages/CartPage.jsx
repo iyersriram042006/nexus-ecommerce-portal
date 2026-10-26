@@ -254,9 +254,8 @@ export const CartPage = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-slate-400">Estimated Statutory GST (18%)</span>
-                <span className="font-semibold text-slate-200">{formatINR(gstAmount)}</span>
+              <div className="pt-1 text-[11px] text-slate-400">
+                Includes GST of Rs {gstAmount.toLocaleString('en-IN')}
               </div>
             </div>
 
@@ -266,7 +265,7 @@ export const CartPage = () => {
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                   Total Payable
                 </span>
-                <span className="text-[10px] text-slate-500">Includes all taxes and delivery</span>
+                <span className="text-[10px] text-slate-500">Includes GST of Rs {gstAmount.toLocaleString('en-IN')}</span>
               </div>
               <span className="text-2xl font-black text-white tracking-tight">
                 {formatINR(totalAmount)}

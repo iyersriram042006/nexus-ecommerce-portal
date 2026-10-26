@@ -322,15 +322,20 @@ export const OrdersPage = () => {
                     <span>Subtotal:</span>
                     <span className="font-semibold text-slate-200">{formatINR(activeOrder.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>GST (18% Statutory):</span>
-                    <span className="font-semibold text-slate-200">{formatINR(activeOrder.gst)}</span>
-                  </div>
+                  {activeOrder.discount > 0 && (
+                    <div className="flex justify-between text-emerald-400">
+                      <span>Discount:</span>
+                      <span>-{formatINR(activeOrder.discount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Shipping Fee:</span>
                     <span className="font-semibold text-slate-200">
                       {activeOrder.shippingCost === 0 ? 'FREE' : formatINR(activeOrder.shippingCost)}
                     </span>
+                  </div>
+                  <div className="pt-1 text-[11px] text-slate-400">
+                    Includes GST of Rs {Number(activeOrder.gst || Math.round(((activeOrder.subtotal - (activeOrder.discount || 0)) * 18) / 118)).toLocaleString('en-IN')}
                   </div>
                   <div className="flex justify-between pt-1 border-t border-[#223049] text-sm font-bold text-white">
                     <span>Total Settled:</span>

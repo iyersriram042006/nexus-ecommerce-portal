@@ -191,9 +191,8 @@ export const OrderSuccessPage = () => {
                     {order.shippingCost === 0 ? 'FREE' : formatINR(order.shippingCost)}
                   </span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Statutory GST (18%)</span>
-                  <span className="font-semibold text-slate-200">{formatINR(order.gst)}</span>
+                <div className="pt-1 text-[11px] text-slate-400">
+                  Includes GST of Rs {Number(order.gst || Math.round(((order.subtotal - (order.discount || 0)) * 18) / 118)).toLocaleString('en-IN')}
                 </div>
                 <div className="flex justify-between pt-2 border-t border-[#223049] text-sm font-bold text-white">
                   <span>Total Amount Paid</span>

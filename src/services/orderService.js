@@ -13,12 +13,34 @@ import { db } from './firebase';
 const ORDERS_COLLECTION = 'orders';
 const LOCAL_ORDERS_KEY = 'nexus_local_orders';
 
+/**
+ * Normalize order data to ensure consistent GST & Total calculation:
+ * Product prices are GST-inclusive. Total = inclusive item subtotal - discount + shipping.
+ * Included GST = amount * 18 / 118.
+ */
+const normalizeOrder = (order) => {
+  if (!order) return order;
+  const subtotal = Number(order.subtotal || 0);
+  const discount = Number(order.discount || 0);
+  const shippingCost = Number(order.shippingCost || 0);
+  const amount = Math.max(0, subtotal - discount);
+  const gst = Math.round((amount * 18) / 118);
+  const total = amount + shippingCost;
+  return {
+    ...order,
+    gst,
+    total,
+  };
+};
+
 export const createOrder = async (orderPayload) => {
   const trackingNumber = `NX-IND-${Math.floor(10000 + Math.random() * 90000)}`;
   const now = new Date().toISOString();
 
+  const normalizedPayload = normalizeOrder(orderPayload);
+
   const newOrder = {
-    ...orderPayload,
+    ...normalizedPayload,
     trackingNumber,
     status: 'Placed', // 'Placed' | 'Packed' | 'Shipped' | 'Delivered'
     timeline: [
@@ -62,7 +84,7 @@ export const fetchOrdersByUser = async (userId) => {
     if (!snapshot.empty) {
       const orders = [];
       snapshot.forEach((docSnap) => {
-        orders.push({ id: docSnap.id, ...docSnap.data() });
+        orders.push(normalizeOrder({ id: docSnap.id, ...docSnap.data() }));
       });
       // Sort newest first
       return orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -75,6 +97,7 @@ export const fetchOrdersByUser = async (userId) => {
   const localOrders = JSON.parse(localStorage.getItem(LOCAL_ORDERS_KEY) || '[]');
   return localOrders
     .filter((o) => !userId || o.userId === userId)
+    .map(normalizeOrder)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
@@ -85,7 +108,7 @@ export const fetchAllOrders = async () => {
     if (!snapshot.empty) {
       const orders = [];
       snapshot.forEach((docSnap) => {
-        orders.push({ id: docSnap.id, ...docSnap.data() });
+        orders.push(normalizeOrder({ id: docSnap.id, ...docSnap.data() }));
       });
       return orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
@@ -94,7 +117,7 @@ export const fetchAllOrders = async () => {
   }
 
   const localOrders = JSON.parse(localStorage.getItem(LOCAL_ORDERS_KEY) || '[]');
-  return localOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return localOrders.map(normalizeOrder).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
 export const fetchOrderById = async (orderId) => {
@@ -102,14 +125,15 @@ export const fetchOrderById = async (orderId) => {
     const docRef = doc(db, ORDERS_COLLECTION, orderId);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
+      return normalizeOrder({ id: docSnap.id, ...docSnap.data() });
     }
   } catch (err) {
     console.warn(`Firestore fetchOrderById ${orderId} failed:`, err);
   }
 
   const localOrders = JSON.parse(localStorage.getItem(LOCAL_ORDERS_KEY) || '[]');
-  return localOrders.find((o) => o.id === orderId) || null;
+  const found = localOrders.find((o) => o.id === orderId);
+  return found ? normalizeOrder(found) : null;
 };
 
 const STATUS_DESCRIPTIONS = {

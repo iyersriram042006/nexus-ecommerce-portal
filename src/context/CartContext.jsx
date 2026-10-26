@@ -132,10 +132,12 @@ export const CartProvider = ({ children }) => {
   const cartCount = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
   const cartSubtotal = cartItems.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
   const discountAmount = appliedPromo ? Math.round(cartSubtotal * appliedPromo.rate) : 0;
-  const taxableAmount = Math.max(0, cartSubtotal - discountAmount);
-  const gstAmount = Math.round(taxableAmount * 0.18);
+  const netAmount = Math.max(0, cartSubtotal - discountAmount);
+  // Product prices are GST-inclusive. Included GST = amount * 18 / 118
+  const gstAmount = Math.round((netAmount * 18) / 118);
   const shippingFee = cartSubtotal >= 999 || cartSubtotal === 0 ? 0 : 99;
-  const totalAmount = taxableAmount + gstAmount + shippingFee;
+  // total = sum of the inclusive item prices - discount + shipping
+  const totalAmount = netAmount + shippingFee;
 
   return (
     <CartContext.Provider
